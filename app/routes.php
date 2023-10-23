@@ -101,4 +101,63 @@ return function (App $app) {
 
         return $response->withHeader("Content-Type", "application/json");
     });
+
+    //post data
+    $app->post('/kelas', function(Request $request, Response $response) {
+        $parsedBody = $request->getParsedBody();
+
+        $jeniskelas = $parsedBody["jeniskelas"];
+
+        $db = $this->get(PDO::class);
+        $query = $db->prepare('CALL CreateKelas(?)');
+        $query->execute([$jeniskelas]);
+
+        $lastId = $db->lastInsertId();
+
+        $response->getBody()->write(json_encode(
+            [
+                'message' => 'country disimpan dengan id ' .$lastId 
+            ]
+            ));
+
+        return $response->withHeader("Content-Type", "application/json");
+    });
+
+    // put data
+    $app->put('/kelas/{id}', function (Request $request, Response $response, $args) {
+        $parsedBody = $request->getParsedBody();
+        $currentId = $args['id'];
+        $jeniskelas = $parsedBody["jeniskelas"];
+    
+        $db = $this->get(PDO::class);
+        $query = $db->prepare('CALL UpdateKelas(?, ?)');
+        $query->execute([$currentId, $jeniskelas]);
+    
+        $response->getBody()->write(json_encode(
+            [
+                'message' => 'Kelas dengan id ' . $currentId . ' telah diupdate dengan jenis kelas ' . $jeniskelas,
+            ]
+        ));
+    
+        return $response->withHeader("Content-Type", "application/json");
+    });
+
+    //Delete kelas
+    $app->delete('/kelas/{id}', function(Request $request, Response $response, $args) {
+        $currentId = $args["id"];
+        $db = $this->get(PDO::class);
+    
+        $query = $db->prepare('CALL DeleteKelas(?)');
+        $query->execute([$currentId]);
+    
+        $response->getBody()->write(json_encode(
+            [
+                'message' => 'Kelas dengan id ' . $currentId . ' dihapus dari database'
+            ]
+        ));
+    
+        return $response->withHeader("Content-Type", "application/json");
+    });
+    
+    
 };
